@@ -16,11 +16,14 @@ namespace Social_Backend.Infrastructure.Data
 {
     public class SocialDBContext : IdentityDbContext<AppUser>
     {
-        private readonly ICurrentUserService _currentUserService;
+        private ICurrentUserService _currentUserService;
 
-        public SocialDBContext(ICurrentUserService currentUserService)
+        public ICurrentUserService CurrentUserService
         {
-            _currentUserService = currentUserService;
+            set
+            {
+                this._currentUserService = value;
+            }
         }
 
         public SocialDBContext()

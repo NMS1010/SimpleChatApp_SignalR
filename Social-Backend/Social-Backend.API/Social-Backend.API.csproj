@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Folder Include="Middlewares\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>
