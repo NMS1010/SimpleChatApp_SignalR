@@ -7,6 +7,7 @@ using Social_Backend.Application.Common.Exceptions;
 using Social_Backend.Application.Common.Models.Auth;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
+using Social_Backend.Core.Interfaces.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;

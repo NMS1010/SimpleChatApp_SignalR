@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Social_Backend.Application.Common.Models.Auth;
 using Social_Backend.Application.Common.Models.CustomResponse;
-using Social_Backend.Core.Interfaces;
+using Social_Backend.Core.Interfaces.Auth;
 
 namespace Social_Backend.API.Controllers
 {

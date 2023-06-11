@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +9,15 @@ using Social_Backend.API.Filters;
 using Social_Backend.Application.Common.Constants;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
+using Social_Backend.Core.Interfaces.Auth;
+using Social_Backend.Core.Interfaces.Chat;
+using Social_Backend.Core.Interfaces.ChatRole;
+using Social_Backend.Core.Interfaces.Message;
+using Social_Backend.Core.Interfaces.User;
+using Social_Backend.Core.Interfaces.UserChat;
 using Social_Backend.Infrastructure;
 using Social_Backend.Infrastructure.Data;
+using Social_Backend.Infrastructure.Repositories;
 using Social_Backend.Infrastructure.Services;
 using Social_Backend.Infrastructure.Services.Upload;
 using System.Reflection;
@@ -38,6 +45,15 @@ services.AddSingleton<ICurrentUserService, CurrentUserService>();
 services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<IAuthService, AuthService>();
 services.AddScoped<IUploadService, LocalUploadService>();
+services.AddScoped<IChatService, ChatService>();
+services.AddScoped<IUserChatService, UserChatService>();
+services.AddScoped<IMessageService, MessageService>();
+
+services.AddScoped<IUserRepository, UserRepository>();
+services.AddScoped<IChatRepository, ChatRepository>();
+services.AddScoped<IMessageRepository, MessageRepository>();
+services.AddScoped<IUserChatRepository, UserChatRepository>();
+services.AddScoped<IChatRoleRepository, ChatRoleRepository>();
 
 services.AddDistributedMemoryCache();
 services.AddHttpContextAccessor();
@@ -95,7 +111,7 @@ services
     .AddJwtBearer(opts =>
     {
         opts.RequireHttpsMetadata = false;
-        opts.SaveToken = true;
+        opts.SaveToken = true; // Save token in HttpContext object
         opts.TokenValidationParameters = new TokenValidationParameters()
         {
             ValidateIssuer = true,

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Social_Backend.Core.Interfaces;
+using Social_Backend.Core.Interfaces.User;
 using System.Security.Claims;
 
 namespace Social_Backend.Infrastructure.Services

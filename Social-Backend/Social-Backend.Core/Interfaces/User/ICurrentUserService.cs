@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Social_Backend.Core.Interfaces
+namespace Social_Backend.Core.Interfaces.User
 {
     public interface ICurrentUserService
     {
