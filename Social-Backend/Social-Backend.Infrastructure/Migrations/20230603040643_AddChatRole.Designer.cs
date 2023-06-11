@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Social_Backend.Infrastructure.Data;
 
@@ -11,9 +12,10 @@ using Social_Backend.Infrastructure.Data;
 namespace Social_Backend.Infrastructure.Migrations
 {
     [DbContext(typeof(SocialDBContext))]
-    partial class SocialDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230603040643_AddChatRole")]
+    partial class AddChatRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -281,9 +283,6 @@ namespace Social_Backend.Infrastructure.Migrations
 
                     b.HasKey("ChatId");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.ToTable("Chats", (string)null);
                 });
 
@@ -296,13 +295,11 @@ namespace Social_Backend.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ChatRoleId"), 1L, 1);
 
                     b.Property<string>("ChatRoleName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ChatRoleId");
 
-                    b.ToTable("ChatRole", (string)null);
+                    b.ToTable("ChatRole");
                 });
 
             modelBuilder.Entity("Social_Backend.Core.Entities.Message", b =>

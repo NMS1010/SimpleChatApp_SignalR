@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Social_Backend.Core.Common;
 using Social_Backend.Core.Entities;
-using Social_Backend.Core.Interfaces;
+using Social_Backend.Core.Interfaces.User;
 using Social_Backend.Infrastructure.Configurations;
 using Social_Backend.Infrastructure.Services;
 using System;
@@ -39,6 +39,7 @@ namespace Social_Backend.Infrastructure.Data
 
             modelBuilder.ApplyConfiguration(new UserConfigurations());
             modelBuilder.ApplyConfiguration(new ChatConfigurations());
+            modelBuilder.ApplyConfiguration(new ChatRoleConfigurations());
             modelBuilder.ApplyConfiguration(new UserChatConfigurations());
             modelBuilder.ApplyConfiguration(new MessageConfigurations());
             foreach (var type in modelBuilder.Model.GetEntityTypes())
@@ -78,5 +79,6 @@ namespace Social_Backend.Infrastructure.Data
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<UserChat> UserChats { get; set; }
+        public DbSet<ChatRole> ChatRoles { get; set; }
     }
 }

@@ -12,5 +12,8 @@ namespace Social_Backend.Core.Entities
         public AppUser User { get; set; }
         public int ChatId { get; set; }
         public Chat Chat { get; set; }
+
+        public int ChatRoleId { get; set; }
+        public ChatRole ChatRole { get; set; }
     }
 }
