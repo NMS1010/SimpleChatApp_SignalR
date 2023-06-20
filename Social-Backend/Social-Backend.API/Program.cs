@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Social_Backend.API.Filters;
+using Social_Backend.API.Hubs;
 using Social_Backend.Application.Common.Constants;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
@@ -55,6 +56,7 @@ services.AddScoped<IMessageRepository, MessageRepository>();
 services.AddScoped<IUserChatRepository, UserChatRepository>();
 services.AddScoped<IChatRoleRepository, ChatRoleRepository>();
 
+services.AddSignalR();
 services.AddDistributedMemoryCache();
 services.AddHttpContextAccessor();
 services.AddControllers(opt => opt.Filters.Add<APIExceptionFilter>())
@@ -164,7 +166,7 @@ app.UseSession();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapHub<ChatHub>("/chat");
 app.MapControllers();
 
 app.Run();

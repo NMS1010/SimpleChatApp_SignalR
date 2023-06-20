@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Social_Backend.Infrastructure.Data;
 
@@ -11,9 +12,10 @@ using Social_Backend.Infrastructure.Data;
 namespace Social_Backend.Infrastructure.Migrations
 {
     [DbContext(typeof(SocialDBContext))]
-    partial class SocialDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230611162932_UpdateMessageEntity")]
+    partial class UpdateMessageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

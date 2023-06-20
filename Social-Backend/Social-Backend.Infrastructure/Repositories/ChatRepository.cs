@@ -15,12 +15,10 @@ namespace Social_Backend.Infrastructure.Repositories
 {
     public class ChatRepository : GenericRepository<Chat>, IChatRepository
     {
-        private readonly IUnitOfWork<SocialDBContext> _unitOfWork;
         private readonly SocialDBContext _context;
 
         public ChatRepository(IUnitOfWork<SocialDBContext> unitOfWork) : base(unitOfWork)
         {
-            _unitOfWork = unitOfWork;
         }
 
         public ChatRepository(SocialDBContext socialDBContext) : base(socialDBContext)

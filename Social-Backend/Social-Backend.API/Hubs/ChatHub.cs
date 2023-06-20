@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Social_Backend.API.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         public ChatHub()

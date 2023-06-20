@@ -23,6 +23,9 @@ namespace Social_Backend.Infrastructure.Configurations
             builder.HasOne(x => x.Chat)
                 .WithMany(x => x.Messages)
                 .HasForeignKey(x => x.ChatId);
+            builder.HasOne(x => x.User)
+                .WithMany(x => x.Messages)
+                .HasForeignKey(x => x.UserId);
         }
     }
 }

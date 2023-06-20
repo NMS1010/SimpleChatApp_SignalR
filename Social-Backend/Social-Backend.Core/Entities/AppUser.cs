@@ -20,5 +20,6 @@ namespace Social_Backend.Core.Entities
         public DateTime? RefreshTokenExpiredTime { get; set; }
 
         public ICollection<UserChat> UserChats { get; set; }
+        public ICollection<Message> Messages { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Social_Backend.Core.Interfaces.Message
 {
     public interface IMessageService
     {
-        Task CreateMessage(MessageCreateRequest request);
+        Task<MessageDTO> CreateMessage(MessageCreateRequest request);
 
         Task<PaginatedResult<MessageDTO>> GetMessage(MessageGetPagingRequest request);
     }
