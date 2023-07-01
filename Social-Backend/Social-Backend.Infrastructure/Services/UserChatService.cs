@@ -46,5 +46,21 @@ namespace Social_Backend.Infrastructure.Services
                 await _unitOfWork.Rollback();
             }
         }
+
+        public async Task LeaveRoom(string userId, int chatId)
+        {
+            try
+            {
+                await _unitOfWork.CreateTransaction();
+                var userChat = await _userChatRepository.GetUserChat(userId, chatId);
+                _userChatRepository.Delete(userChat);
+                await _unitOfWork.Save();
+                await _unitOfWork.Commit();
+            }
+            catch
+            {
+                await _unitOfWork.Rollback();
+            }
+        }
     }
 }

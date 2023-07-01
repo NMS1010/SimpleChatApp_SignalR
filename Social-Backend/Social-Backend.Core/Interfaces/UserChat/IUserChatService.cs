@@ -9,5 +9,7 @@ namespace Social_Backend.Core.Interfaces.UserChat
     public interface IUserChatService
     {
         Task JoinRoom(string userId, int chatId);
+
+        Task LeaveRoom(string userId, int chatId);
     }
 }

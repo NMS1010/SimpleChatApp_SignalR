@@ -1,4 +1,5 @@
-﻿using Social_Backend.Core.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Core.Interfaces.UserChat;
 using Social_Backend.Infrastructure.Data;
@@ -18,6 +19,11 @@ namespace Social_Backend.Infrastructure.Repositories
 
         public UserChatRepository(SocialDBContext socialDBContext) : base(socialDBContext)
         {
+        }
+
+        public async Task<UserChat> GetUserChat(string userId, int chatId)
+        {
+            return await base.Context.UserChats.Where(x => x.UserId == userId && x.ChatId == chatId).FirstOrDefaultAsync();
         }
     }
 }
