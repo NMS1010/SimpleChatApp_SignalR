@@ -1,20 +1,17 @@
 import * as baseService from './baseService';
 
 export const login = async (username, password) => {
-    let formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
-    return await baseService.createFormData('users/login', formData);
+    let fdata = new FormData();
+    fdata.append('username', username);
+    fdata.append('password', password);
+    return await baseService.createFormData('auths/login', fdata);
 };
 export const refreshToken = async (accessToken, refreshToken) => {
-    let formData = new FormData();
-    formData.append('accessToken', accessToken);
-    formData.append('refreshToken', refreshToken);
-    return await baseService.createFormData('users/refresh-token', formData);
+    return await baseService.createJsonData('auths/refresh-token', {accessToken, refreshToken});
 };
 export const revokeToken = async (userId) => {
-    return await baseService.createData(`users/revoke-token/${userId}`, {});
+    return await baseService.createJsonData(`auths/revoke-token/${userId}`, {});
 };
-export const register = async (formData) => {
-    return await baseService.createFormData('users/register', formData);
+export const register = async (data) => {
+    return await baseService.createJsonData('auths/register', data);
 };

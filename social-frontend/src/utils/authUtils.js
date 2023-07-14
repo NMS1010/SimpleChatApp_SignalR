@@ -14,3 +14,7 @@ export const clearToken = () => {
 export const isTokenStoraged = () => {
     return localStorage.getItem('accessToken') && localStorage.getItem('refreshToken');
 };
+
+export const getToken = () => {
+    return localStorage.getItem('accessToken');
+}

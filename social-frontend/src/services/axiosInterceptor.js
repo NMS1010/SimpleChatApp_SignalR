@@ -1,14 +1,17 @@
 import axios from 'axios';
 import * as authService from './authService';
 import * as authUtil from '../utils/authUtils';
-
-const axiosClient = () => {
-    const axiosClient = axios.create({
-        baseURL: process.env.REACT_APP_API_ENDPOINT,
+const axiosClient = (navigate) => {
+    axios.defaults.baseURL = process.env.REACT_APP_API_ENDPOINT;
+    axios.interceptors.request.use(onRequestSuccess);
+    axios.interceptors.response.use(onResponseSuccess, async (error) => {
+        const { response, config } = error;
+        const status = response?.status;
+        if (status !== 401 && status !== 403 ) {
+            return Promise.reject(error);
+        }
+        return await refreshToken(error, navigate);
     });
-    axiosClient.interceptors.request.use(onRequestSuccess);
-    axiosClient.interceptors.response.use(onResponseSuccess, onResponseError);
-    return axiosClient;
 };
 const onRequestSuccess = (config) => {
     const token = localStorage.getItem('accessToken');
@@ -22,28 +25,25 @@ const onRequestSuccess = (config) => {
 };
 const onResponseSuccess = (response) => {
     return response;
+}
+const handleApiUnauthoried = (navigate) => {
+    navigate('/auth/login')
 };
-const onResponseError = async (error) => {
-    const { response, config } = error;
-    const status = response?.status;
-    if (status !== 401 && status !== 403 ) {
-        return Promise.reject(error);
-    }
-    return await refreshToken(error);
-};
-const refreshToken = async (error) => {
+const refreshToken = async (error, navigate) => {
     try {
+        const { config } = error;
         const response = await authService.refreshToken(localStorage.getItem('accessToken'), 
                             localStorage.getItem('refreshToken'));
         if (!response?.data) {
             authUtil.clearToken();
+            handleApiUnauthoried(navigate);
             return Promise.reject(error);
         }
         let {accessToken, refreshToken} = response.data;
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
         return new Promise((resolve, reject) => {
-              if (token) {
+              if (accessToken) {
                 config.headers.Authorization = `Bearer ${accessToken}`;
                 resolve(axios(config));
               }

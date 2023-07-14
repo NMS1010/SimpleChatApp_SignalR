@@ -1,9 +1,13 @@
-import axiosClient from './axiosInterceptor';
+import axios from "axios";
 
 export const getData = async (url, params = {}) => {
     try {
-        const response = await axiosClient().get(url, {
+        const response = await axios.get(url, {
             params,
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'accept': 'application/json' 
+            }
         });
         return response.data;
     } catch (error) {
@@ -13,7 +17,7 @@ export const getData = async (url, params = {}) => {
 
 export const deleteData = async (url) => {
     try {
-        const response = await axiosClient().delete(url);
+        const response = await axios.delete(url);
         return response.data;
     } catch (error) {
         return error?.response;
@@ -21,7 +25,7 @@ export const deleteData = async (url) => {
 };
 export const createFormData = async (url, formData) => {
     try {
-        let response = await axiosClient().postForm(url, formData, {
+        let response = await axios.postForm(url, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -33,7 +37,7 @@ export const createFormData = async (url, formData) => {
 };
 export const createJsonData = async (url, obj) => {
     try {
-        let response = await axiosClient().postForm(
+        let response = await axios.postForm(
             url,
             { ...obj },
             {
@@ -49,7 +53,7 @@ export const createJsonData = async (url, obj) => {
 };
 export const updateFormData = async (url, formData) => {
     try {
-        let response = await axiosClient().putForm(url, formData, {
+        let response = await axios.putForm(url, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -61,7 +65,7 @@ export const updateFormData = async (url, formData) => {
 };
 export const updateJsonData = async (url, obj) => {
     try {
-        let response = await axiosClient().putForm(
+        let response = await axios.putForm(
             url,
             { ...obj },
             {
