@@ -15,11 +15,6 @@ namespace Social_Backend.Infrastructure.Services.Upload
             throw new NotImplementedException();
         }
 
-        public string GetFile(string filename)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<string> UploadFile(IFormFile file)
         {
             throw new NotImplementedException();

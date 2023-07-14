@@ -20,7 +20,7 @@ namespace Social_Backend.API.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromForm] LoginRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

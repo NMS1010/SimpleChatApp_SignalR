@@ -15,18 +15,13 @@ namespace Social_Backend.Infrastructure.Repositories
 {
     public class ChatRoleRepository : GenericRepository<ChatRole>, IChatRoleRepository
     {
-        public ChatRoleRepository(IUnitOfWork<SocialDBContext> unitOfWork) : base(unitOfWork)
-        {
-        }
-
-        public ChatRoleRepository(SocialDBContext socialDBContext) : base(socialDBContext)
+        public ChatRoleRepository(SocialDBContext context) : base(context)
         {
         }
 
         public async Task<ChatRole> GetByName(string name)
         {
-            var res = await base.Context.ChatRoles.Where(x => x.ChatRoleName == name).SingleOrDefaultAsync()
-                ?? throw new NotFoundException("Cannot found this role");
+            var res = await Context.ChatRoles.Where(x => x.ChatRoleName == name).SingleOrDefaultAsync();
             return res;
         }
     }

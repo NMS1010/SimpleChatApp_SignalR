@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Social_Backend.Application.Common.Constants;
 using Social_Backend.Application.Common.Extentions;
 using Social_Backend.Application.Common.Models.Chat;
@@ -8,6 +10,7 @@ using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Core.Interfaces.Chat;
 using Social_Backend.Core.Interfaces.ChatRole;
+using Social_Backend.Core.Interfaces.User;
 using Social_Backend.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -19,23 +22,16 @@ namespace Social_Backend.Infrastructure.Services
 {
     public class ChatService : IChatService
     {
-        private readonly IChatRepository _chatRepository;
         private readonly IMapper _mapper;
-        private readonly IChatRoleRepository _chatRoleRepository;
-        public readonly IUnitOfWork<SocialDBContext> _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ChatService(IChatRepository chatRepository,
-            IMapper mapper,
-            IUnitOfWork<SocialDBContext> unitOfWork,
-            IChatRoleRepository chatRoleRepository)
+        public ChatService(IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _chatRepository = chatRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
-            _chatRoleRepository = chatRoleRepository;
         }
 
-        public async Task CreateRoom(ChatCreateRequest request)
+        public async Task<int> CreateRoom(ChatCreateRequest request)
         {
             try
             {
@@ -43,21 +39,26 @@ namespace Social_Backend.Infrastructure.Services
                 var chat = new Chat()
                 {
                     Name = request.Name,
-                    ChatType = CHAT_TYPE.GROUP_TYPE
+                    ChatType = CHAT_TYPE.GROUP_TYPE,
+                    Avatar = "default-group.png"
                 };
-                var chatRole = await _chatRoleRepository.GetByName(CHAT_ROLE.LEADER_ROLE);
-                chat.UserChats.Add(new UserChat()
+                await _unitOfWork.ChatRepository.Insert(chat);
+                await _unitOfWork.Save();
+                var chatRole = await _unitOfWork.ChatRoleRepository.GetByName(CHAT_ROLE.LEADER_ROLE);
+                await _unitOfWork.UserChatRepository.Insert(new UserChat()
                 {
+                    ChatId = chat.ChatId,
                     UserId = request.UserId,
                     ChatRoleId = chatRole.ChatRoleId
                 });
-                await _chatRepository.Insert(chat);
                 await _unitOfWork.Save();
                 await _unitOfWork.Commit();
+                return chat.ChatId;
             }
-            catch
+            catch (Exception ex)
             {
                 await _unitOfWork.Rollback();
+                throw ex;
             }
         }
 
@@ -66,11 +67,23 @@ namespace Social_Backend.Infrastructure.Services
             try
             {
                 await _unitOfWork.CreateTransaction();
-                var chats = _chatRepository.GetChatsByUserId(request.UserId);
-
+                var chats = _unitOfWork.ChatRepository.GetChatsByUserId(request.UserId);
                 var res = await chats.PaginatedListAsync(request.PageIndex, request.PageSize);
+                foreach (var c in res.Items)
+                {
+                    if (c.ChatType == CHAT_TYPE.PRIVATE_TYPE)
+                    {
+                        var userChat = await _unitOfWork.UserChatRepository.GetPartnerPrivateChat(request.UserId, c.ChatId);
+                        if (userChat != null)
+                        {
+                            c.Avatar = userChat.Avatar;
+                            c.Name = $"{userChat.FirstName} {userChat.LastName}";
+                        }
+                    }
+                }
                 await _unitOfWork.Commit();
-                return _mapper.Map<PaginatedResult<Chat>, PaginatedResult<ChatDTO>>(res);
+                var t = res.Items.Select(x => _mapper.Map<Chat, ChatDTO>(x));
+                return new PaginatedResult<ChatDTO>(t.ToList(), request.PageIndex, res.TotalCount, request.PageSize);
             }
             catch (Exception ex)
             {
@@ -84,7 +97,7 @@ namespace Social_Backend.Infrastructure.Services
             try
             {
                 await _unitOfWork.CreateTransaction();
-                var chat = await _chatRepository.GetById(chatId);
+                var chat = await _unitOfWork.ChatRepository.GetById(chatId);
                 await _unitOfWork.Commit();
                 return _mapper.Map<Chat, ChatDTO>(chat);
             }
@@ -95,34 +108,50 @@ namespace Social_Backend.Infrastructure.Services
             }
         }
 
-        public async Task CreatePrivateRoom(ChatCreateRequest request)
+        public async Task<int> CreatePrivateRoom(ChatCreateRequest request)
         {
             try
             {
                 await _unitOfWork.CreateTransaction();
+                var user = await _unitOfWork.UserRepository.GetById(request.UserId);
                 var chat = new Chat()
                 {
-                    ChatType = CHAT_TYPE.PRIVATE_TYPE
+                    ChatType = CHAT_TYPE.PRIVATE_TYPE,
+                    Avatar = user.Avatar ?? "",
+                    Name = $"{user.FirstName} {user.LastName}".Trim()
                 };
-                var chatRole = await _chatRoleRepository.GetByName(CHAT_ROLE.SAME_ROLE);
-                chat.UserChats.Add(new UserChat()
+                await _unitOfWork.ChatRepository.Insert(chat);
+                await _unitOfWork.Save();
+                var chatRole = await _unitOfWork.ChatRoleRepository.GetByName(CHAT_ROLE.SAME_ROLE);
+                await _unitOfWork.UserChatRepository.Insert(new UserChat()
                 {
+                    ChatId = chat.ChatId,
                     UserId = request.UserId,
                     ChatRoleId = chatRole.ChatRoleId
                 });
-                chat.UserChats.Add(new UserChat()
+                await _unitOfWork.UserChatRepository.Insert(new UserChat()
                 {
+                    ChatId = chat.ChatId,
                     UserId = request.RootUserId,
                     ChatRoleId = chatRole.ChatRoleId
                 });
-                await _chatRepository.Insert(chat);
                 await _unitOfWork.Save();
                 await _unitOfWork.Commit();
+                return chat.ChatId;
             }
-            catch
+            catch (Exception ex)
             {
                 await _unitOfWork.Rollback();
+                throw ex;
             }
+        }
+
+        public async Task<bool> UserAlreadyInChat(string userId, string rootUserId)
+        {
+            var chatUser = _unitOfWork.ChatRepository.GetChatsByUserId(userId);
+            var chatUserRoot = _unitOfWork.ChatRepository.GetChatsByUserId(rootUserId);
+            var res = await chatUser.Intersect(chatUserRoot).ToListAsync();
+            return res.Count > 0;
         }
     }
 }

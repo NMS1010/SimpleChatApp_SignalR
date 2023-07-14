@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Social_Backend.Core.Common;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces.User;
@@ -25,9 +27,6 @@ namespace Social_Backend.Infrastructure.Data
                 this._currentUserService = value;
             }
         }
-
-        public SocialDBContext()
-        { }
 
         public SocialDBContext(DbContextOptions options) : base(options)
         {
@@ -63,12 +62,12 @@ namespace Social_Backend.Infrastructure.Data
                 switch (entry.State)
                 {
                     case EntityState.Added:
-                        entry.Entity.Creator = _currentUserService.UserId ?? "System";
+                        entry.Entity.Creator = _currentUserService?.UserId ?? "System";
                         entry.Entity.CreateDate = DateTime.Now;
                         break;
 
                     case EntityState.Modified:
-                        entry.Entity.Modifier = _currentUserService.UserId ?? "System";
+                        entry.Entity.Modifier = _currentUserService?.UserId ?? "System";
                         entry.Entity.ModifyDate = DateTime.Now;
                         break;
                 }

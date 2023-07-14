@@ -1,14 +1,17 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Social_Backend.API.Filters;
 using Social_Backend.API.Hubs;
 using Social_Backend.Application.Common.Constants;
 using Social_Backend.Core.Entities;
+using Social_Backend.Core.Helpers;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Core.Interfaces.Auth;
 using Social_Backend.Core.Interfaces.Chat;
@@ -42,13 +45,16 @@ services
     })
     .AddEntityFrameworkStores<SocialDBContext>();
 
+services.AddTransient<IUnitOfWork, UnitOfWork>();
+
 services.AddSingleton<ICurrentUserService, CurrentUserService>();
+services.AddScoped<IUserService, UserService>();
 services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<IAuthService, AuthService>();
 services.AddScoped<IUploadService, LocalUploadService>();
 services.AddScoped<IChatService, ChatService>();
-services.AddScoped<IUserChatService, UserChatService>();
 services.AddScoped<IMessageService, MessageService>();
+services.AddScoped<IUserChatService, UserChatService>();
 
 services.AddScoped<IUserRepository, UserRepository>();
 services.AddScoped<IChatRepository, ChatRepository>();
@@ -67,7 +73,11 @@ services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddSingleton(provider => new MapperConfiguration(cfg =>
+{
+    cfg.AddProfile(new MappingProfile(provider.GetService<IHttpContextAccessor>(), provider.GetService<ICurrentUserService>()));
+}).CreateMapper());
+//services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -125,6 +135,22 @@ services
             ClockSkew = TimeSpan.Zero,
             IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes)
         };
+        opts.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hub"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 services.AddAuthorization();
 services.AddSession();
@@ -132,23 +158,35 @@ services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://localhost:3000")
+            .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 async Task CreateRoles(IServiceProvider serviceProvider)
 {
-    var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var unitOfWork = serviceProvider.GetRequiredService<IUnitOfWork>();
     foreach (var roleName in USER_ROLE.Roles)
     {
-        var roleExist = await RoleManager.RoleExistsAsync(roleName);
+        var roleExist = await roleManager.RoleExistsAsync(roleName);
         if (!roleExist)
         {
-            await RoleManager.CreateAsync(new IdentityRole(roleName));
+            await roleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
+    await unitOfWork.CreateTransaction();
+    foreach (var roleName in CHAT_ROLE.ChatRoles)
+    {
+        var roleExist = await unitOfWork.ChatRoleRepository.GetByName(roleName);
+        if (roleExist == null)
+        {
+            await unitOfWork.ChatRoleRepository.Insert(new ChatRole() { ChatRoleName = roleName });
+        }
+    }
+    await unitOfWork.Save();
+    await unitOfWork.Commit();
 }
 await CreateRoles(services.BuildServiceProvider());
 var app = builder.Build();
@@ -166,7 +204,7 @@ app.UseSession();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHub<ChatHub>("/chat");
+app.MapHub<ChatHub>("/hub/chat");
 app.MapControllers();
 
 app.Run();

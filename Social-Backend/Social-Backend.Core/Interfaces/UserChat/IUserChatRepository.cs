@@ -9,5 +9,7 @@ namespace Social_Backend.Core.Interfaces.UserChat
     public interface IUserChatRepository : IGenericRepository<Entities.UserChat>
     {
         Task<Entities.UserChat> GetUserChat(string userId, int chatId);
+
+        Task<Entities.AppUser> GetPartnerPrivateChat(string userId, int chatId);
     }
 }

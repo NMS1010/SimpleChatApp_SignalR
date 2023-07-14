@@ -2,6 +2,7 @@
 using Social_Backend.Application.Common.Exceptions;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Infrastructure.Data;
+using Social_Backend.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +23,6 @@ namespace Social_Backend.Infrastructure.Repositories
             get { return _entities ??= Context.Set<T>(); }
         }
 
-        public GenericRepository(IUnitOfWork<SocialDBContext> unitOfWork) : this(unitOfWork.Context)
-        {
-        }
-
         public GenericRepository(SocialDBContext socialDBContext)
         {
             Context = socialDBContext;
@@ -43,7 +40,7 @@ namespace Social_Backend.Infrastructure.Repositories
             {
                 if (Context == null || _isDisposed)
                 {
-                    Context = new SocialDBContext();
+                    Context = new SocialDBContext(DbContextHelper.GetDBContextOptions());
                 }
                 Entities.Remove(entity);
             }
@@ -80,7 +77,7 @@ namespace Social_Backend.Infrastructure.Repositories
             {
                 if (Context == null || _isDisposed)
                 {
-                    Context = new SocialDBContext();
+                    Context = new SocialDBContext(DbContextHelper.GetDBContextOptions());
                 }
                 await Entities.AddAsync(entity);
             }
@@ -100,7 +97,7 @@ namespace Social_Backend.Infrastructure.Repositories
             {
                 if (Context == null || _isDisposed)
                 {
-                    Context = new SocialDBContext();
+                    Context = new SocialDBContext(DbContextHelper.GetDBContextOptions());
                 }
                 Context.Entry(entity).State = EntityState.Modified;
             }

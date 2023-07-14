@@ -15,7 +15,7 @@ namespace Social_Backend.Infrastructure.Services.Upload
     {
         private readonly string _userContent;
         private const string USER_CONTENT_FOLDER = "user-content";
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private static IHttpContextAccessor _httpContextAccessor;
 
         public LocalUploadService(IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor)
         {
@@ -34,14 +34,6 @@ namespace Social_Backend.Infrastructure.Services.Upload
             {
                 await Task.Run(() => File.Delete(path));
             }
-        }
-
-        public string GetFile(string filename)
-        {
-            var req = _httpContextAccessor.HttpContext.Request;
-            var path = $"{req.Scheme}://{req.Host}/{USER_CONTENT_FOLDER}/{filename}";
-
-            return path;
         }
 
         private async Task<string> ConfirmSave(Stream stream, string fileName)

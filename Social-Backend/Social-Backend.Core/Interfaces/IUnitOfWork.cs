@@ -1,4 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Social_Backend.Core.Interfaces.Chat;
+using Social_Backend.Core.Interfaces.ChatRole;
+using Social_Backend.Core.Interfaces.Message;
+using Social_Backend.Core.Interfaces.User;
+using Social_Backend.Core.Interfaces.UserChat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +12,13 @@ using System.Threading.Tasks;
 
 namespace Social_Backend.Core.Interfaces
 {
-    public interface IUnitOfWork<out TContext> where TContext : DbContext, new()
+    public interface IUnitOfWork
     {
-        TContext Context { get; }
+        IChatRepository ChatRepository { get; set; }
+        IChatRoleRepository ChatRoleRepository { get; set; }
+        IMessageRepository MessageRepository { get; set; }
+        IUserChatRepository UserChatRepository { get; set; }
+        IUserRepository UserRepository { get; set; }
 
         Task CreateTransaction();
 

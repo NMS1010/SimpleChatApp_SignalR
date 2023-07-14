@@ -1,4 +1,5 @@
-﻿using Social_Backend.Application.Common.Exceptions;
+﻿using Microsoft.EntityFrameworkCore;
+using Social_Backend.Application.Common.Exceptions;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Core.Interfaces.Message;
@@ -13,22 +14,17 @@ namespace Social_Backend.Infrastructure.Repositories
 {
     public class MessageRepository : GenericRepository<Message>, IMessageRepository
     {
-        private readonly SocialDBContext _context;
-
-        public MessageRepository(IUnitOfWork<SocialDBContext> unitOfWork) : base(unitOfWork)
+        public MessageRepository(SocialDBContext context) : base(context)
         {
-        }
-
-        public MessageRepository(SocialDBContext socialDBContext) : base(socialDBContext)
-        {
-            _context = socialDBContext;
         }
 
         public IQueryable<Message> GetMessagesByChat(int chatId)
         {
-            var messages = _context.Messages
+            var messages = Context.Messages
+                .Include(x => x.User)
+                .Include(x => x.Chat)
                 .Where(x => x.ChatId == chatId)
-                .OrderByDescending(x => x.CreateDate) ?? throw new NotFoundException("Cannot get messages for this chat");
+                .OrderBy(x => x.CreateDate) ?? throw new NotFoundException("Cannot get messages for this chat");
             return messages;
         }
     }

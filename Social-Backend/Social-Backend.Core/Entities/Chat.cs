@@ -12,6 +12,9 @@ namespace Social_Backend.Core.Entities
         public int ChatId { get; set; }
         public string ChatType { get; set; }
         public string Name { get; set; }
+        public string Avatar { get; set; }
+        public string LastMessage { get; set; }
+        public DateTime LastMessageDate { get; set; }
         public ICollection<Message> Messages { get; set; }
         public ICollection<UserChat> UserChats { get; set; }
     }

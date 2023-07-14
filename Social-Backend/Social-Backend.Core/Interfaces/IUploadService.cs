@@ -11,8 +11,6 @@ namespace Social_Backend.Core.Interfaces
     {
         Task<string> UploadFile(IFormFile file);
 
-        string GetFile(string filename);
-
         Task DeleteFile(string filename);
     }
 }

@@ -8,6 +8,7 @@ using Social_Backend.Application.Common.Models.Auth;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Core.Interfaces.Auth;
+using Social_Backend.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,30 +36,37 @@ namespace Social_Backend.Infrastructure.Services
 
         public async Task<AuthResponse> Authenticate(LoginRequest request)
         {
-            var user = await _userManager.FindByNameAsync(request.UserName);
-            if (user == null)
-                throw new NotFoundException("Username/password is incorrect");
-            var res = await _signInManager.PasswordSignInAsync(user, request.Password, false, lockoutOnFailure: true);
-            if (res.IsLockedOut)
+            try
             {
-                throw new ForbiddenAccessException("Your account has been lockout, unlock in " + user.LockoutEnd);
-            }
-            if (!res.Succeeded)
-                throw new NotFoundException("Username/password is incorrect");
-            if (user.Status == USER_STATUS.IN_ACTIVE)
-                throw new ForbiddenAccessException("Your account has been banned");
-            //if (!user.EmailConfirmed)
-            //    throw new ForbiddenAccessException("Your account hasn't been confirmed");
+                var user = await _userManager.FindByNameAsync(request.UserName);
+                if (user == null)
+                    throw new NotFoundException("Username/password is incorrect");
+                var res = await _signInManager.PasswordSignInAsync(user, request.Password, false, lockoutOnFailure: true);
+                if (res.IsLockedOut)
+                {
+                    throw new ForbiddenAccessException("Your account has been lockout, unlock in " + user.LockoutEnd);
+                }
+                if (!res.Succeeded)
+                    throw new NotFoundException("Username/password is incorrect");
+                if (user.Status == USER_STATUS.IN_ACTIVE)
+                    throw new ForbiddenAccessException("Your account has been banned");
+                //if (!user.EmailConfirmed)
+                //    throw new ForbiddenAccessException("Your account hasn't been confirmed");
 
-            string accessToken = await _tokenService.CreateJWT(user.Id);
-            string refreshToken = _tokenService.CreateRefreshToken();
-            DateTime refreshTokenExpiredTime = DateTime.Now.AddDays(7);
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiredTime = refreshTokenExpiredTime;
-            var isSuccess = await _userManager.UpdateAsync(user);
-            if (!isSuccess.Succeeded)
-                throw new Exception("Cannot login, please contact administrator");
-            return new AuthResponse { AccessToken = accessToken, RefreshToken = refreshToken };
+                string accessToken = await _tokenService.CreateJWT(user.Id);
+                string refreshToken = _tokenService.CreateRefreshToken();
+                DateTime refreshTokenExpiredTime = DateTime.Now.AddDays(7);
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiredTime = refreshTokenExpiredTime;
+                var isSuccess = await _userManager.UpdateAsync(user);
+                if (!isSuccess.Succeeded)
+                    throw new Exception("Cannot login, please contact administrator");
+                return new AuthResponse { AccessToken = accessToken, RefreshToken = refreshToken };
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         public async Task<AuthResponse> RefreshToken(AuthResponse request)
@@ -84,48 +92,59 @@ namespace Social_Backend.Infrastructure.Services
 
         public async Task<bool> Register(RegisterRequest request)
         {
-            var user = new AppUser()
+            try
             {
-                DateOfBirth = request.Dob,
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                UserName = request.UserName,
-                PhoneNumber = request.PhoneNumber,
-                Gender = request.Gender,
-                Status = USER_STATUS.ACTIVE,
-            };
-            if (request.Avatar != null)
-            {
-                user.Avatar = await _uploadService.UploadFile(request.Avatar);
-            }
-            var res = await _userManager.CreateAsync(user, request.Password);
+                var user = new AppUser()
+                {
+                    DateOfBirth = request.Dob,
+                    Email = request.Email,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    UserName = request.UserName,
+                    PhoneNumber = request.PhoneNumber,
+                    Gender = request.Gender,
+                    Status = USER_STATUS.ACTIVE,
+                };
+                if (request.Avatar != null)
+                {
+                    user.Avatar = await _uploadService.UploadFile(request.Avatar);
+                }
+                else
+                {
+                    user.Avatar = "default-user.png";
+                }
+                var res = await _userManager.CreateAsync(user, request.Password);
 
-            if (res.Succeeded)
-            {
-                List<string> roles = new()
+                if (res.Succeeded)
+                {
+                    List<string> roles = new()
                 {
                    USER_ROLE.CUSTOMER_ROLE
                 };
-                await _userManager.AddToRolesAsync(user, roles);
-                //if (!string.IsNullOrEmpty(request.LoginProvider))
-                //{
-                //    await _userManager.AddLoginAsync(user, new UserLoginInfo(request.LoginProvider, request.ProviderKey, request.LoginProvider));
-                //}
-                //if (!string.IsNullOrEmpty(request.Host))
-                //{
-                //    bool isSend = await SendConfirmToken(user, request.Host);
-                //    if (!isSend)
-                //    {
-                //        throw new Exception("Cannot send mail");
-                //    }
-                //}
-                return true;
-            }
+                    await _userManager.AddToRolesAsync(user, roles);
+                    //if (!string.IsNullOrEmpty(request.LoginProvider))
+                    //{
+                    //    await _userManager.AddLoginAsync(user, new UserLoginInfo(request.LoginProvider, request.ProviderKey, request.LoginProvider));
+                    //}
+                    //if (!string.IsNullOrEmpty(request.Host))
+                    //{
+                    //    bool isSend = await SendConfirmToken(user, request.Host);
+                    //    if (!isSend)
+                    //    {
+                    //        throw new Exception("Cannot send mail");
+                    //    }
+                    //}
+                    return true;
+                }
 
-            string error = "";
-            res.Errors.ToList().ForEach(x => error += (x.Description + "/n"));
-            throw new Exception(error);
+                string error = "";
+                res.Errors.ToList().ForEach(x => error += (x.Description + "/n"));
+                throw new Exception(error);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         public async Task RevokeAllToken()

@@ -10,25 +10,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Social_Backend.Infrastructure.Repositories
 {
     public class ChatRepository : GenericRepository<Chat>, IChatRepository
     {
-        private readonly SocialDBContext _context;
-
-        public ChatRepository(IUnitOfWork<SocialDBContext> unitOfWork) : base(unitOfWork)
+        public ChatRepository(SocialDBContext context) : base(context)
         {
-        }
-
-        public ChatRepository(SocialDBContext socialDBContext) : base(socialDBContext)
-        {
-            _context = socialDBContext;
         }
 
         public IQueryable<Chat> GetChatsByUserId(string userId)
         {
-            var chats = _context.UserChats.Where(x => x.UserId == userId).Select(x => x.Chat) ?? throw new NotFoundException("Cannot find chats");
+            var chats = Context.Chats
+                .Include(x => x.UserChats)
+                .Where(x => x.UserChats.Any(a => a.UserId == userId))
+                ?? throw new NotFoundException("Cannot find chats");
 
             return chats;
         }

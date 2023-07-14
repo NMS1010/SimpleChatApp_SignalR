@@ -15,8 +15,9 @@ namespace Social_Backend.Infrastructure.Configurations
         {
             builder.ToTable("Chats");
             builder.HasKey(x => x.ChatId);
-            builder.HasIndex(x => x.Name).IsUnique();
-            builder.Property(x => x.Name).HasMaxLength(250).IsRequired();
+
+            builder.Property(x => x.Avatar).IsRequired(false);
+            builder.Property(x => x.Name).HasMaxLength(250).IsRequired(false);
             builder.Property(x => x.ChatType).HasMaxLength(250).IsRequired();
 
             builder.HasMany(x => x.UserChats)

@@ -7,6 +7,7 @@ using Social_Backend.Application.Common.Models.Paging;
 using Social_Backend.Application.Dtos;
 using Social_Backend.Core.Entities;
 using Social_Backend.Core.Interfaces.Chat;
+using Social_Backend.Core.Interfaces.User;
 using Social_Backend.Core.Interfaces.UserChat;
 
 namespace Social_Backend.API.Controllers
@@ -18,23 +19,26 @@ namespace Social_Backend.API.Controllers
     {
         private readonly IChatService _chatServices;
         private readonly IUserChatService _userChatServices;
+        private readonly ICurrentUserService _currentUserService;
 
-        public ChatsController(IChatService chatServices, IUserChatService userChatServices)
+        public ChatsController(IChatService chatServices, IUserChatService userChatServices, ICurrentUserService currentUserService)
         {
             _chatServices = chatServices;
             _userChatServices = userChatServices;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet("get-chats")]
-        public async Task<IActionResult> GetChats([FromForm] ChatGetPagingRequest request)
+        public async Task<IActionResult> GetChats([FromQuery] ChatGetPagingRequest request)
         {
+            request.UserId = _currentUserService.UserId;
             var chats = await _chatServices.GetChatsByUser(request);
 
             return Ok(CustomAPIResponse<PaginatedResult<ChatDTO>>.Success(chats, StatusCodes.Status200OK));
         }
 
-        [HttpGet("get-chat")]
-        public async Task<IActionResult> GetChatById([FromForm] int chatId)
+        [HttpGet("get-chat/{chatId}")]
+        public async Task<IActionResult> GetChatById(int chatId)
         {
             var chat = await _chatServices.GetChatById(chatId);
 
@@ -52,7 +56,10 @@ namespace Social_Backend.API.Controllers
         [HttpPost("create/private")]
         public async Task<IActionResult> CreatePrivateChat([FromForm] ChatCreateRequest request)
         {
-            await _chatServices.CreatePrivateRoom(request);
+            request.RootUserId = _currentUserService.UserId;
+            var check = await _chatServices.UserAlreadyInChat(request.UserId, request.RootUserId);
+            if (!check)
+                await _chatServices.CreatePrivateRoom(request);
 
             return Ok(CustomAPIResponse<NoContentAPIResponse>.Success(StatusCodes.Status201Created));
         }

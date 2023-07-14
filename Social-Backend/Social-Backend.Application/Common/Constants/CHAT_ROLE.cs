@@ -14,7 +14,7 @@ namespace Social_Backend.Application.Common.Constants
 
         public static readonly List<string> ChatRoles = new()
             {
-                MEMBER_ROLE,LEADER_ROLE
+                MEMBER_ROLE,LEADER_ROLE,SAME_ROLE
             };
     }
 }

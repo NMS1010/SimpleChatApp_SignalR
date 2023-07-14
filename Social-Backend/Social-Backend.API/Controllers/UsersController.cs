@@ -16,21 +16,31 @@ namespace Social_Backend.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, ICurrentUserService currentUserService)
         {
             _userService = userService;
+            _currentUserService = currentUserService;
+        }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetCurrentProfile()
+        {
+            var user = await _userService.GetById(_currentUserService.UserId);
+            return Ok(CustomAPIResponse<UserDTO>.Success(user, StatusCodes.Status200OK));
         }
 
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetById(string userId)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUser(string userId)
         {
             var user = await _userService.GetById(userId);
             return Ok(CustomAPIResponse<UserDTO>.Success(user, StatusCodes.Status200OK));
         }
 
-        [HttpGet("{name}")]
-        public async Task<IActionResult> FindUsersByName(UserSearchRequest request)
+        [HttpGet("search")]
+        public async Task<IActionResult> FindUsersByName([FromQuery] UserSearchRequest request)
         {
             var users = await _userService.FindUsersByName(request);
             return Ok(CustomAPIResponse<PaginatedResult<UserDTO>>.Success(users, StatusCodes.Status200OK));

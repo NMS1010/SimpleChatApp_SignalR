@@ -13,10 +13,12 @@ namespace Social_Backend.Core.Interfaces.Chat
     {
         Task<PaginatedResult<ChatDTO>> GetChatsByUser(ChatGetPagingRequest request);
 
-        Task CreateRoom(ChatCreateRequest request);
+        Task<int> CreateRoom(ChatCreateRequest request);
 
-        Task CreatePrivateRoom(ChatCreateRequest request);
+        Task<int> CreatePrivateRoom(ChatCreateRequest request);
 
         Task<ChatDTO> GetChatById(int chatId);
+
+        Task<bool> UserAlreadyInChat(string userId, string rootUserId);
     }
 }

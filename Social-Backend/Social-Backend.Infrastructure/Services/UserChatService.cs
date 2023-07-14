@@ -14,14 +14,10 @@ namespace Social_Backend.Infrastructure.Services
 {
     public class UserChatService : IUserChatService
     {
-        public readonly IUserChatRepository _userChatRepository;
-        public readonly IChatRoleRepository _chatRoleRepository;
-        public readonly IUnitOfWork<SocialDBContext> _unitOfWork;
+        public readonly IUnitOfWork _unitOfWork;
 
-        public UserChatService(IUserChatRepository userChatRepository, IChatRoleRepository chatRoleRepository, IUnitOfWork<SocialDBContext> unitOfWork)
+        public UserChatService(IUnitOfWork unitOfWork)
         {
-            _userChatRepository = userChatRepository;
-            _chatRoleRepository = chatRoleRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -30,14 +26,14 @@ namespace Social_Backend.Infrastructure.Services
             try
             {
                 await _unitOfWork.CreateTransaction();
-                var chatRole = await _chatRoleRepository.GetByName(CHAT_ROLE.MEMBER_ROLE);
+                var chatRole = await _unitOfWork.ChatRoleRepository.GetByName(CHAT_ROLE.MEMBER_ROLE);
                 var userChat = new UserChat()
                 {
                     ChatId = chatId,
                     UserId = userId,
                     ChatRoleId = chatRole.ChatRoleId
                 };
-                await _userChatRepository.Insert(userChat);
+                await _unitOfWork.UserChatRepository.Insert(userChat);
                 await _unitOfWork.Save();
                 await _unitOfWork.Commit();
             }
@@ -52,8 +48,8 @@ namespace Social_Backend.Infrastructure.Services
             try
             {
                 await _unitOfWork.CreateTransaction();
-                var userChat = await _userChatRepository.GetUserChat(userId, chatId);
-                _userChatRepository.Delete(userChat);
+                var userChat = await _unitOfWork.UserChatRepository.GetUserChat(userId, chatId);
+                _unitOfWork.UserChatRepository.Delete(userChat);
                 await _unitOfWork.Save();
                 await _unitOfWork.Commit();
             }

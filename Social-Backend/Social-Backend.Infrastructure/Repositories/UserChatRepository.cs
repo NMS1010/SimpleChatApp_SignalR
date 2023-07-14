@@ -13,17 +13,18 @@ namespace Social_Backend.Infrastructure.Repositories
 {
     public class UserChatRepository : GenericRepository<UserChat>, IUserChatRepository
     {
-        public UserChatRepository(IUnitOfWork<SocialDBContext> unitOfWork) : base(unitOfWork)
+        public UserChatRepository(SocialDBContext context) : base(context)
         {
         }
 
-        public UserChatRepository(SocialDBContext socialDBContext) : base(socialDBContext)
+        public async Task<AppUser> GetPartnerPrivateChat(string userId, int chatId)
         {
+            return (await Context.UserChats.Include(x => x.User).Where(x => x.UserId != userId && x.ChatId == chatId).FirstOrDefaultAsync())?.User;
         }
 
         public async Task<UserChat> GetUserChat(string userId, int chatId)
         {
-            return await base.Context.UserChats.Where(x => x.UserId == userId && x.ChatId == chatId).FirstOrDefaultAsync();
+            return await Context.UserChats.Where(x => x.UserId == userId && x.ChatId == chatId).FirstOrDefaultAsync();
         }
     }
 }

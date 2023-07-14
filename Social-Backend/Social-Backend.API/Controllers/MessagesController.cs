@@ -26,7 +26,7 @@ namespace Social_Backend.API.Controllers
         }
 
         [HttpGet("get")]
-        public async Task<IActionResult> GetMessageByChat(MessageGetPagingRequest request)
+        public async Task<IActionResult> GetMessageByChat([FromQuery] MessageGetPagingRequest request)
         {
             var res = await _messageService.GetMessage(request);
             return Ok(CustomAPIResponse<PaginatedResult<MessageDTO>>.Success(res, StatusCodes.Status200OK));
