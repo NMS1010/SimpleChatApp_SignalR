@@ -13,5 +13,5 @@ export const revokeToken = async (userId) => {
     return await baseService.createJsonData(`auths/revoke-token/${userId}`, {});
 };
 export const register = async (data) => {
-    return await baseService.createJsonData('auths/register', data);
+    return await baseService.createFormData('auths/register', data);
 };

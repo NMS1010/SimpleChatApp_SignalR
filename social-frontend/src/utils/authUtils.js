@@ -17,4 +17,14 @@ export const isTokenStoraged = () => {
 
 export const getToken = () => {
     return localStorage.getItem('accessToken');
-}
+};
+
+export const isTokenExpired = () => {
+    let token = localStorage.getItem('accessToken');
+    let jwtDecodeObj = jwtDecode(token);
+    let currentDate = new Date();
+    if (jwtDecodeObj.exp * 1000 < currentDate.getTime()) {
+        return true;
+    }
+    return false;
+};

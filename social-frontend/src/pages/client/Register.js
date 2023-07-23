@@ -1,24 +1,152 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import config from '../../configs';
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import * as validatorUtils from '../../utils/validatorUtils';
+import * as convertUtils from '../../utils/convertUtils';
+import * as authServices from '../../services/authService';
+import Loading from '../../components/Loading';
 const Register = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [userInfo, setUserInfo] = useState({
         username: '',
         password: '',
         confirmPassword: '',
-        dateOfBirth: new Date(),
+        dob: new Date(),
         email: '',
         phoneNumber: '',
         firstName: '',
         lastName: '',
         gender: 'Nam',
     });
+    const [errors, setErrors] = useState({});
+    const rules = useMemo(
+        () => [
+            {
+                field: 'username',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+            {
+                field: 'password',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+            {
+                field: 'confirmPassword',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+            {
+                field: 'confirmPassword',
+                method: 'equals',
+                validWhen: true,
+                args: [userInfo.password],
+                message: 'Not match password',
+            },
+            {
+                field: 'email',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+            {
+                field: 'email',
+                method: 'isEmail',
+                validWhen: true,
+                message: 'Email is invalid',
+            },
+            {
+                field: 'phoneNumber',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+            {
+                field: 'phoneNumber',
+                method: 'isMobilePhone',
+                args: ['vi-VN'],
+                validWhen: true,
+                message: 'Phone is invalid.',
+            },
+            {
+                field: 'firstName',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+            {
+                field: 'lastName',
+                method: 'isEmpty',
+                validWhen: false,
+                message: 'This field is required.',
+            },
+        ],
+        [userInfo.password],
+    );
+
+    useEffect(() => {}, [userInfo]);
+    const onRegister = async () => {
+        const errs = validatorUtils.validator(rules, userInfo);
+        if (Object.keys(errs).length !== 0) {
+            setErrors(errs);
+            return;
+        }
+        setLoading(true);
+        const fData = convertUtils.objectToFormData(userInfo);
+        const resp = await authServices.register(fData);
+        console.log(resp);
+        setLoading(false);
+        let icon = 'success';
+        let text = 'Register successfully';
+        if (!resp) {
+            Swal.fire({
+                title: 'Failed to register',
+                text: 'Cannot connect to server',
+                icon: 'error',
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.close();
+                }
+            });
+            return;
+        }
+        let { isSuccess, errors } = resp;
+        if (!isSuccess) {
+            icon = 'error';
+            text = errors?.join('\n');
+        }
+        Swal.fire({
+            title: text,
+            icon: icon,
+            allowOutsideClick: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (isSuccess) {
+                    navigate('/auth/login');
+                }
+            }
+        });
+    };
     const onChange = (e) => {
         const { name, value } = e.target;
-        setUserInfo({ [name]: value });
+        const errs = validatorUtils.validator(
+            rules.map((x) => {
+                if (x.field === name) return x;
+            }),
+            { [name]: value },
+        );
+        setErrors(errs);
+        setUserInfo({ ...userInfo, [name]: value });
     };
-    return (
+    return loading ? (
+        <Loading />
+    ) : (
         <section className="border-red-500 bg-gray-200 min-h-screen flex items-center justify-center">
             <div className="bg-gray-100 p-5 flex rounded-2xl shadow-lg max-w-4xl">
                 <div className="px-5">
@@ -37,6 +165,9 @@ const Register = () => {
                                     value={userInfo.username}
                                     required
                                 />
+                                {errors?.username && (
+                                    <div className="text-red-500 mt-1 block text-left">{errors?.username}</div>
+                                )}
                             </div>
                             <div className="ml-2">
                                 <input
@@ -50,6 +181,9 @@ const Register = () => {
                                     value={userInfo.phoneNumber}
                                     required
                                 />
+                                {errors?.phoneNumber && (
+                                    <div className="text-red-500 mt-1 block text-left">{errors?.phoneNumber}</div>
+                                )}
                             </div>
                         </div>
                         <div className="mt-4">
@@ -64,6 +198,7 @@ const Register = () => {
                                 value={userInfo.email}
                                 required
                             />
+                            {errors?.email && <div className="text-red-500 mt-1 block text-left">{errors?.email}</div>}
                         </div>
                         <div className="mt-4 flex">
                             <div className="mr-2">
@@ -78,6 +213,9 @@ const Register = () => {
                                     value={userInfo.firstName}
                                     required
                                 />
+                                {errors?.firstName && (
+                                    <div className="text-red-500 mt-1 block text-left">{errors?.firstName}</div>
+                                )}
                             </div>
                             <div className="ml-2">
                                 <input
@@ -91,18 +229,21 @@ const Register = () => {
                                     value={userInfo.lastName}
                                     required
                                 />
+                                {errors?.lastName && (
+                                    <div className="text-red-500 mt-1 block text-left">{errors?.lastName}</div>
+                                )}
                             </div>
                         </div>
                         <div className="mt-4 flex items-center">
                             <div className="mr-2">
                                 <input
                                     type="date"
-                                    name="dateOfBirth"
-                                    id="dateOfBirth"
+                                    name="dob"
+                                    id="dob"
                                     className="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border focus:border-blue-500 focus:bg-white focus:outline-none"
                                     autoFocus
                                     onChange={onChange}
-                                    value={userInfo.firstName}
+                                    value={userInfo.dob.toLocaleDateString('en-CA')}
                                     required
                                 />
                             </div>
@@ -129,6 +270,9 @@ const Register = () => {
                                 className="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border focus:border-blue-500 focus:bg-white focus:outline-none"
                                 required
                             />
+                            {errors?.password && (
+                                <div className="text-red-500 mt-1 block text-left">{errors?.password}</div>
+                            )}
                         </div>
 
                         <div className="mt-4">
@@ -142,10 +286,14 @@ const Register = () => {
                                 className="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border focus:border-blue-500 focus:bg-white focus:outline-none"
                                 required
                             />
+                            {errors?.confirmPassword && (
+                                <div className="text-red-500 mt-1 block text-left">{errors?.confirmPassword}</div>
+                            )}
                         </div>
 
                         <button
-                            type="submit"
+                            onClick={onRegister}
+                            type="button"
                             className="w-full block bg-blue-500 hover:bg-blue-400 focus:bg-blue-400 text-white font-semibold rounded-lg  px-4 py-3 mt-6"
                         >
                             Register
