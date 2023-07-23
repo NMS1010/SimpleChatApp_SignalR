@@ -69,7 +69,7 @@ namespace Social_Backend.Infrastructure.Services
             }
         }
 
-        public async Task<AuthResponse> RefreshToken(AuthResponse request)
+        public async Task<AuthResponse> RefreshToken(RefreshTokenRequest request)
         {
             var userPrincipal = _tokenService.ValidateExpiredJWT(request.AccessToken);
             if (userPrincipal is null)

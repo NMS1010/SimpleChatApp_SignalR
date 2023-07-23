@@ -11,7 +11,8 @@ namespace Social_Backend.Application.Common.Models.Message
     {
         public string Text { get; set; }
         public int Status { get; set; }
-        public IFormFile Image { get; set; }
+        public IFormFile File { get; set; }
+        public string MessageType { get; set; }
         public int ChatId { get; set; }
         public string RoomId { get; set; }
     }

@@ -14,7 +14,8 @@ namespace Social_Backend.Application.Dtos
         public bool IsMe { get; set; }
         public string Text { get; set; }
         public int Status { get; set; }
-        public string Image { get; set; }
+        public string File { get; set; }
+        public string MessageType { get; set; }
         public string Creator { get; set; }
         public string UserAvatar { get; set; }
         public DateTime CreateDate { get; set; }

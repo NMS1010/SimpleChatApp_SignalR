@@ -17,7 +17,7 @@ namespace Social_Backend.Infrastructure.Configurations
             builder.HasKey(x => x.MessageId);
 
             builder.Property(x => x.Text).HasMaxLength(int.MaxValue);
-            builder.Property(x => x.Image).HasMaxLength(int.MaxValue);
+            builder.Property(x => x.File).HasMaxLength(int.MaxValue);
             builder.Property(x => x.Status).IsRequired();
 
             builder.HasOne(x => x.Chat)

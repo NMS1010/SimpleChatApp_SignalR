@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Social_Backend.Infrastructure.Data;
 
@@ -11,9 +12,10 @@ using Social_Backend.Infrastructure.Data;
 namespace Social_Backend.Infrastructure.Migrations
 {
     [DbContext(typeof(SocialDBContext))]
-    partial class SocialDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230721153251_AddMessageType")]
+    partial class AddMessageType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -318,6 +320,9 @@ namespace Social_Backend.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageId"), 1L, 1);
 
+                    b.Property<string>("AudioRecord")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ChatId")
                         .HasColumnType("int");
 
@@ -327,11 +332,8 @@ namespace Social_Backend.Infrastructure.Migrations
                     b.Property<string>("Creator")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("File")
+                    b.Property<string>("Image")
                         .HasMaxLength(2147483647)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MessageType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Modifier")
@@ -349,6 +351,9 @@ namespace Social_Backend.Infrastructure.Migrations
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Video")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MessageId");
 

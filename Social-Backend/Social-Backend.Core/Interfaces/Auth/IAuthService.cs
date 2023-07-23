@@ -11,7 +11,7 @@ namespace Social_Backend.Core.Interfaces.Auth
     {
         Task<AuthResponse> Authenticate(LoginRequest request);
 
-        Task<AuthResponse> RefreshToken(AuthResponse request);
+        Task<AuthResponse> RefreshToken(RefreshTokenRequest request);
 
         Task RevokeToken(string userId);
 

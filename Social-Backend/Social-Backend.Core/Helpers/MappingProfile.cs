@@ -46,7 +46,9 @@ namespace Social_Backend.Core.Helpers
                 .ForMember(des => des.IsMe,
                 act => act.MapFrom(src => src.UserId == currentUserService.UserId))
                 .ForMember(des => des.UserAvatar,
-                act => act.MapFrom(src => GetFile(src.User.Avatar, httpContextAccessor)));
+                act => act.MapFrom(src => GetFile(src.User.Avatar, httpContextAccessor)))
+                .ForMember(des => des.File,
+                act => act.MapFrom(src => GetFile(src.File, httpContextAccessor)));
         }
     }
 }

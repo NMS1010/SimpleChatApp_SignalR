@@ -8,6 +8,7 @@ using Social_Backend.Application.Common.Models.Message;
 using Social_Backend.Application.Common.Models.Paging;
 using Social_Backend.Application.Dtos;
 using Social_Backend.Core.Interfaces.Message;
+using Social_Backend.Core.Interfaces.User;
 
 namespace Social_Backend.API.Controllers
 {
@@ -17,12 +18,14 @@ namespace Social_Backend.API.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly IMessageService _messageService;
+        private readonly ICurrentUserService _currentUserService;
         private readonly IHubContext<ChatHub> _hubContext;
 
-        public MessagesController(IMessageService messageService, IHubContext<ChatHub> hubContext)
+        public MessagesController(IMessageService messageService, IHubContext<ChatHub> hubContext, ICurrentUserService currentUserService)
         {
             _messageService = messageService;
             _hubContext = hubContext;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet("get")]
@@ -36,11 +39,7 @@ namespace Social_Backend.API.Controllers
         public async Task<IActionResult> CreateMessage([FromForm] MessageCreateRequest request)
         {
             var message = await _messageService.CreateMessage(request);
-            await _hubContext.Clients.Group(request.RoomId).SendAsync("ReceiveMessage", new
-            {
-                Text = message.Text,
-                CreateDate = message.CreateDate
-            });
+            await _hubContext.Clients.Group(request.RoomId).SendAsync("ReceiveMessage", _currentUserService.UserId, message);
             return Ok(CustomAPIResponse<NoContentAPIResponse>.Success(StatusCodes.Status201Created));
         }
     }

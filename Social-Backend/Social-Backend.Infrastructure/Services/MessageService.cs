@@ -5,6 +5,7 @@ using Social_Backend.Application.Common.Models.Message;
 using Social_Backend.Application.Common.Models.Paging;
 using Social_Backend.Application.Dtos;
 using Social_Backend.Core.Entities;
+using Social_Backend.Core.Helpers;
 using Social_Backend.Core.Interfaces;
 using Social_Backend.Core.Interfaces.Chat;
 using Social_Backend.Core.Interfaces.Message;
@@ -44,11 +45,22 @@ namespace Social_Backend.Infrastructure.Services
                     ChatId = request.ChatId,
                     Text = request.Text,
                     Status = request.Status,
-                    User = await _unitOfWork.UserRepository.GetById(_currentUserService.UserId)
+                    User = await _unitOfWork.UserRepository.GetById(_currentUserService.UserId),
+                    MessageType = MESSAGE_TYPE.TEXT
                 };
-                if (request.Image != null)
+                if (request.File != null)
                 {
-                    message.Image = await _uploadService.UploadFile(request.Image);
+                    message.File = await _uploadService.UploadFile(request.File);
+                    var type = MessageHelpers.GetMessageTypeFromFile(request.File);
+                    if (type == MESSAGE_TYPE.IMAGE && message.MessageType != null &&
+                        message.MessageType == MESSAGE_TYPE.TEXT)
+                    {
+                        message.MessageType = MESSAGE_TYPE.TEXT_IMAGE;
+                    }
+                    else
+                    {
+                        message.MessageType = type;
+                    }
                 }
                 var chat = await _unitOfWork.ChatRepository.GetById(request.ChatId);
                 chat.LastMessage = request.Text;
